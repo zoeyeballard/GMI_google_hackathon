@@ -66,12 +66,12 @@ describe('Phase 3: API routes', () => {
 
   describe('Academy matching', () => {
     it('matches left-footed winger to Barcelona La Masia', async () => {
-      const { matchAcademy } = await import('../app/api/scout/route')
+      const { matchAcademy } = await import('../lib/academy')
       expect(matchAcademy('winger', 'left', 'Senegal')).toBe('FC Barcelona La Masia')
     })
 
     it('matches striker to RB Leipzig Academy', async () => {
-      const { matchAcademy } = await import('../app/api/scout/route')
+      const { matchAcademy } = await import('../lib/academy')
       expect(matchAcademy('striker', 'right', 'Nigeria')).toBe('RB Leipzig Academy')
     })
   })

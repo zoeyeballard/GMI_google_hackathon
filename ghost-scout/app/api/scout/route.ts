@@ -5,6 +5,7 @@ import { RocketRideOrchestrator } from '@/lib/rocketride'
 import { analyzeWithBenchmarks, generatePlayerComps } from '@/lib/gmi'
 import { generateScoutingReport, generateAcademyEmail } from '@/lib/gemini'
 import { getBenchmarks } from '@/lib/benchmarks'
+import { matchAcademy } from '@/lib/academy'
 import { PlayerInput, ScoutingReport, PipelineStep, BenchmarkResult, PlayerComp } from '@/lib/types'
 
 const reportStore = new Map<string, ScoutingReport>()
@@ -22,15 +23,6 @@ const PlayerInputSchema = z.object({
   language: z.string().min(2),
 })
 
-export function matchAcademy(position: string, dominantFoot: string, _country: string): string {
-  if (position === 'winger' && dominantFoot === 'left') return 'FC Barcelona La Masia'
-  if (position === 'striker') return 'RB Leipzig Academy'
-  if (position === 'midfielder') return 'Ajax Academy'
-  if (position === 'defender') return 'Atalanta Academy'
-  if (position === 'goalkeeper') return 'Manchester City Academy'
-  if (position === 'winger') return 'Borussia Dortmund Academy'
-  return 'Ajax Academy'
-}
 
 export async function POST(req: NextRequest) {
   let body: { player?: unknown }

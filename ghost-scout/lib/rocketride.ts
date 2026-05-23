@@ -2,9 +2,11 @@ import { PipelineStep } from './types'
 
 export class RocketRideOrchestrator {
   private maxRetries: number
+  private stopOnError: boolean
 
-  constructor(maxRetries = 1) {
+  constructor(maxRetries = 1, stopOnError = true) {
     this.maxRetries = maxRetries
+    this.stopOnError = stopOnError
   }
 
   async *run(
@@ -19,6 +21,9 @@ export class RocketRideOrchestrator {
       if (!handler) {
         step.status = 'error'
         yield { ...step }
+        if (this.stopOnError) {
+          throw new Error(`No handler for step: ${step.name}`)
+        }
         continue
       }
 
@@ -49,6 +54,9 @@ export class RocketRideOrchestrator {
         step.duration_ms = Date.now() - startTime
         step.output_preview = lastError instanceof Error ? lastError.message : String(lastError)
         yield { ...step }
+        if (this.stopOnError) {
+          throw lastError instanceof Error ? lastError : new Error(String(lastError))
+        }
       }
     }
   }

@@ -8,7 +8,7 @@ export async function generateScoutingReport(
   benchmark: BenchmarkResult,
   comps: PlayerComp[]
 ): Promise<{ english: string; native: string }> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
   const compsText = comps
     .map(c => `- ${c.player_name} (${c.current_club}): ${c.similarity_score}% match — ${c.note}`)
@@ -62,7 +62,7 @@ export async function generateAcademyEmail(
   player: PlayerInput,
   academy: string
 ): Promise<string> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
   const prompt = `Write a formal email to the youth academy director at ${academy}, introducing a talented youth player.
 
