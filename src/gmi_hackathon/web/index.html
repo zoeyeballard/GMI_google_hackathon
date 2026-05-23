@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GMI Hackathon Scouting Demo</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <p class="eyebrow">Tactical Intelligence Studio</p>
+        <h1>Turn match footage into a sharp scouting brief.</h1>
+        <p class="lede">Use URL mode for quick tests or upload mode for local clips. The app runs GMI analysis, pulls tactical context, then renders a coach-ready report.</p>
+      </section>
+
+      <section class="card">
+        <form id="analysis-form" class="form">
+          <p class="mode-hint">Tip: if remote inference fails, verify your GMI endpoint path in `.env`.</p>
+          <label>
+            Source type
+            <select name="source_type" id="source-type">
+              <option value="url">URL</option>
+              <option value="upload">Upload file</option>
+            </select>
+          </label>
+
+          <label>
+            Clip URL
+            <input name="source" id="clip-url" type="url" placeholder="https://example.com/clip" />
+          </label>
+
+          <label>
+            Clip file
+            <input name="file" id="clip-file" type="file" accept="video/*" />
+          </label>
+          <div class="grid">
+            <label>
+              Team name
+              <input name="team_name" type="text" placeholder="Cabo Verde" />
+            </label>
+            <label>
+              Tournament
+              <input name="tournament" type="text" placeholder="World Cup" />
+            </label>
+          </div>
+          <div class="grid">
+            <label>
+              Clip length (minutes)
+              <input name="clip_minutes" type="number" min="1" max="20" value="5" />
+            </label>
+            <label>
+              Expected latency
+              <input type="text" value="30-120s depending on clip" disabled />
+            </label>
+          </div>
+          <div class="actions">
+            <button type="submit">Run analysis</button>
+            <button type="button" id="demo-fill" class="secondary">Load demo values</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card status-panel">
+        <div class="status-row">
+          <span id="status-pill" class="pill">Idle</span>
+          <p id="status-text">Waiting for a clip.</p>
+        </div>
+        <p id="error-note" class="error-note" hidden></p>
+        <pre id="output" class="output">Analysis output will appear here.</pre>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

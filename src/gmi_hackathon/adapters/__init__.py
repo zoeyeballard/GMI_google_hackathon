@@ -1,0 +1,1 @@
+"""Adapter implementations for vendor-specific integrations."""

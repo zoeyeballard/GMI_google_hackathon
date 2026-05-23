@@ -1,0 +1,26 @@
+[
+  {
+    "source": "match-01",
+    "note": "Compact 4-4-2 side that presses on back passes and protects the center.",
+    "similarity_reason": "Matches compact mid-block and transition pattern.",
+    "keywords": ["compact mid-block", "back pass press", "transition", "4-4-2"]
+  },
+  {
+    "source": "match-02",
+    "note": "Team that overloads the left half-space before switching quickly to the weak side.",
+    "similarity_reason": "Relevant to left wing overload and quick circulation.",
+    "keywords": ["left wing overload", "switch play", "half-space", "circulation"]
+  },
+  {
+    "source": "match-03",
+    "note": "Set-piece heavy underdog with near-post corner movement and blocking runs.",
+    "similarity_reason": "Useful for dead-ball patterns and corner routines.",
+    "keywords": ["set piece", "near post", "corner routine", "blocking run"]
+  },
+  {
+    "source": "match-04",
+    "note": "Deep defensive block that counters through a direct target forward.",
+    "similarity_reason": "Relevant when the clip shows direct transitions from pressure.",
+    "keywords": ["deep block", "direct counter", "target forward", "transition"]
+  }
+]
