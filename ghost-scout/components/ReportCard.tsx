@@ -38,12 +38,43 @@ function renderMarkdown(md: string): string {
 
 export default function ReportCard({ report }: ReportCardProps) {
   const [showNative, setShowNative] = useState(false)
+  const [copied, setCopied] = useState(false)
   const { player, benchmark, comps, matched_academy } = report
   const flag = countryFlags[player.country] || '\u{1F30D}'
   const ratingClass = ratingColors[benchmark.overall_rating] || ratingColors.developing
 
+  const handleDownloadPDF = () => {
+    const originalTitle = document.title
+    document.title = `GhostScout_${player.name.replace(/\s+/g, '_')}_Report`
+    window.print()
+    document.title = originalTitle
+  }
+
+  const handleCopyReport = async () => {
+    try {
+      await navigator.clipboard.writeText(report.report_english)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      const textarea = document.createElement('textarea')
+      textarea.value = report.report_english
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
+  const footerText = `${player.name} — Generated ${new Date(report.generated_at).toLocaleDateString()}`
+
   return (
-    <div className="max-w-4xl mx-auto p-8 space-y-8">
+    <div
+      className="max-w-4xl mx-auto p-8 space-y-8"
+      data-report-card
+      data-report-footer={footerText}
+    >
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-3xl font-bold text-white">{player.name}</h2>
@@ -117,9 +148,36 @@ export default function ReportCard({ report }: ReportCardProps) {
         </div>
       </div>
 
-      <div className="bg-scout-accent/10 border border-scout-accent/30 rounded-lg p-4 text-center">
-        <div className="text-sm text-gray-400">Recommended Academy</div>
-        <div className="text-xl font-bold text-scout-accent mt-1">{matched_academy}</div>
+      <div>
+        <h3 className="text-lg font-bold text-white mb-4">Recommended Academies</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {report.matched_academies?.length ? (
+            report.matched_academies.map((academy, idx) => (
+              <div
+                key={academy.name}
+                className={`rounded-lg p-4 border ${idx === 0 ? 'bg-scout-accent/10 border-scout-accent/30' : 'bg-gray-900/50 border-gray-800'}`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`text-xs font-semibold uppercase px-2 py-0.5 rounded ${
+                    academy.tier === 'elite' ? 'bg-scout-accent/20 text-scout-accent' :
+                    academy.tier === 'top' ? 'bg-blue-500/20 text-blue-400' :
+                    'bg-gray-700/50 text-gray-400'
+                  }`}>
+                    {academy.tier}
+                  </span>
+                  <span className="text-scout-accent font-bold text-sm">{academy.fitScore}% fit</span>
+                </div>
+                <div className="font-semibold text-white text-sm mb-1">{academy.name}</div>
+                <div className="text-xs text-gray-500 mb-2">{academy.country}</div>
+                <div className="text-xs text-gray-400 leading-relaxed">{academy.reason}</div>
+              </div>
+            ))
+          ) : (
+            <div className="bg-scout-accent/10 border border-scout-accent/30 rounded-lg p-4 text-center col-span-3">
+              <div className="text-xl font-bold text-scout-accent">{matched_academy}</div>
+            </div>
+          )}
+        </div>
       </div>
 
       <div>
@@ -140,6 +198,27 @@ export default function ReportCard({ report }: ReportCardProps) {
           }}
         />
       </div>
+
+      <div className="flex items-center gap-3 pt-4 no-print">
+        <button
+          onClick={handleDownloadPDF}
+          className="px-5 py-2.5 text-sm font-medium rounded-lg bg-scout-accent text-scout-dark hover:bg-scout-accent/90 transition-colors"
+        >
+          Download Report (PDF)
+        </button>
+        <button
+          onClick={handleCopyReport}
+          className="px-5 py-2.5 text-sm font-medium rounded-lg border border-scout-accent text-scout-accent hover:bg-scout-accent/10 transition-colors"
+        >
+          {copied ? 'Copied!' : 'Copy Report Text'}
+        </button>
+      </div>
+
+      {copied && (
+        <div className="fixed bottom-6 right-6 px-4 py-2.5 bg-scout-accent text-scout-dark text-sm font-medium rounded-lg shadow-lg shadow-scout-accent/20 animate-pulse no-print">
+          Copied to clipboard!
+        </div>
+      )}
     </div>
   )
 }

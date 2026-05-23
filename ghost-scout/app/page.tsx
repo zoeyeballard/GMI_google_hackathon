@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import ScoutForm from '@/components/ScoutForm'
 import PipelineStatus from '@/components/PipelineStatus'
 import ReportCard from '@/components/ReportCard'
@@ -8,6 +9,7 @@ import EmailDraft from '@/components/EmailDraft'
 import { PlayerInput, PipelineStep, ScoutingReport } from '@/lib/types'
 
 export default function Home() {
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [steps, setSteps] = useState<PipelineStep[]>([])
   const [report, setReport] = useState<ScoutingReport | null>(null)
@@ -64,6 +66,10 @@ export default function Home() {
               )
             } else if (event.type === 'complete') {
               setReport(event.report)
+              sessionStorage.setItem(`report:${event.report.id}`, JSON.stringify(event.report))
+              setTimeout(() => {
+                router.push(`/report/${event.report.id}`)
+              }, 1500)
             } else if (event.type === 'error') {
               setError(event.error)
             }
@@ -84,16 +90,22 @@ export default function Home() {
   if (report) {
     return (
       <div className="min-h-screen bg-scout-dark">
-        <div className="text-center pt-8">
+        <div className="text-center pt-8 flex items-center justify-center gap-4">
           <button
             onClick={() => { setReport(null); setSteps([]); setError(null) }}
             className="text-gray-400 hover:text-scout-accent transition-colors text-sm"
           >
             &larr; Scout another player
           </button>
+          <button
+            onClick={() => router.push(`/report/${report.id}`)}
+            className="px-4 py-2 text-sm font-medium rounded-lg bg-scout-accent/10 border border-scout-accent text-scout-accent hover:bg-scout-accent/20 transition-colors"
+          >
+            View Permalink
+          </button>
         </div>
         <ReportCard report={report} />
-        <EmailDraft email={report.email_draft} academy={report.matched_academy} />
+        <EmailDraft email={report.email_draft} academy={report.matched_academy} academyMatches={report.matched_academies} />
       </div>
     )
   }

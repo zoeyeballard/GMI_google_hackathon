@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-# GMI Google Hackathon — Ghost Scout
-
-AI-powered football scouting platform. See [`ghost-scout/README.md`](./ghost-scout/README.md) for full setup and run instructions.
-=======
 # Ghost Scout
 
 > AI-powered football talent discovery for underserved regions
@@ -28,6 +23,8 @@ cp .env.local.example .env.local
 npm run dev
 ```
 
+See [`ghost-scout/README.md`](./ghost-scout/README.md) for full setup and run instructions.
+
 ## Environment Variables
 | Variable | Description |
 |---|---|
@@ -42,4 +39,3 @@ npm test
 ```
 
 ## Built at GMI Cloud × Google I/O × RocketRide Hackathon, May 2026
->>>>>>> 24f2e5394e5949279c2b25b300255c126cfd6940

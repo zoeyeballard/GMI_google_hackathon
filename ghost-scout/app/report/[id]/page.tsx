@@ -2,46 +2,64 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
+import Link from 'next/link'
 import ReportCard from '@/components/ReportCard'
 import EmailDraft from '@/components/EmailDraft'
 import { ScoutingReport } from '@/lib/types'
 
 export default function ReportPage() {
-  const params = useParams()
+  const params = useParams<{ id: string }>()
   const [report, setReport] = useState<ScoutingReport | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const id = params.id as string
-    if (!id) return
+    async function fetchReport() {
+      try {
+        const res = await fetch(`/api/scout?id=${params.id}`)
+        if (res.ok) {
+          const data = await res.json()
+          setReport(data)
+          return
+        }
+      } catch {
+        // API unavailable, fall through to sessionStorage
+      }
 
-    fetch(`/api/scout?id=${id}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Report not found')
-        return res.json()
-      })
-      .then(setReport)
-      .catch(err => setError(err.message))
+      const cached = sessionStorage.getItem(`report:${params.id}`)
+      if (cached) {
+        try {
+          setReport(JSON.parse(cached))
+          return
+        } catch {
+          // corrupted cache, ignore
+        }
+      }
+
+      setError('Report not found — it may have expired. Generate a new one from the home page.')
+      setLoading(false)
+    }
+    fetchReport().finally(() => setLoading(false))
   }, [params.id])
 
-  if (error) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-scout-dark flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-2">Report Not Found</h1>
-          <p className="text-gray-400">{error}</p>
-          <a href="/" className="text-scout-accent hover:underline mt-4 inline-block">
-            &larr; Back to Scout
-          </a>
-        </div>
+        <div className="text-gray-400 text-sm animate-pulse">Loading report...</div>
       </div>
     )
   }
 
-  if (!report) {
+  if (error || !report) {
     return (
-      <div className="min-h-screen bg-scout-dark flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-scout-accent border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-scout-dark flex flex-col items-center justify-center gap-4">
+        <p className="text-red-400">{error || 'Report not found'}</p>
+        <Link
+          href="/"
+          className="text-scout-accent hover:underline text-sm"
+        >
+          &larr; Back to Scout
+        </Link>
       </div>
     )
   }
@@ -49,12 +67,15 @@ export default function ReportPage() {
   return (
     <div className="min-h-screen bg-scout-dark">
       <div className="text-center pt-8">
-        <a href="/" className="text-gray-400 hover:text-scout-accent transition-colors text-sm">
-          &larr; Scout another player
-        </a>
+        <Link
+          href="/"
+          className="text-gray-400 hover:text-scout-accent transition-colors text-sm"
+        >
+          &larr; Back to Scout
+        </Link>
       </div>
       <ReportCard report={report} />
-      <EmailDraft email={report.email_draft} academy={report.matched_academy} />
+      <EmailDraft email={report.email_draft} academy={report.matched_academy} academyMatches={report.matched_academies} />
     </div>
   )
 }

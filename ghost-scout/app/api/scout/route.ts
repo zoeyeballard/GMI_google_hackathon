@@ -5,8 +5,8 @@ import { RocketRideOrchestrator } from '@/lib/rocketride'
 import { analyzeWithBenchmarks, generatePlayerComps } from '@/lib/gmi'
 import { generateScoutingReport, generateAcademyEmail } from '@/lib/gemini'
 import { getBenchmarks } from '@/lib/benchmarks'
-import { matchAcademy } from '@/lib/academy'
-import { PlayerInput, ScoutingReport, PipelineStep, BenchmarkResult, PlayerComp } from '@/lib/types'
+import { matchAcademy, matchAcademies } from '@/lib/academy'
+import { PlayerInput, ScoutingReport, PipelineStep, BenchmarkResult, PlayerComp, AcademyMatch } from '@/lib/types'
 
 const reportStore = new Map<string, ScoutingReport>()
 
@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
   const benchmarks = getBenchmarks(player.age, player.position)
 
   let benchmarkResult: BenchmarkResult
+  let academyMatches: AcademyMatch[] = []
   let comps: PlayerComp[]
   let reportTexts: { english: string; native: string }
   let emailDraft: string
@@ -68,6 +69,7 @@ export async function POST(req: NextRequest) {
       const handlers = {
         step1: async () => {
           benchmarkResult = await analyzeWithBenchmarks(player, benchmarks)
+          academyMatches = matchAcademies({ player, rating: benchmarkResult.overall_rating })
           return benchmarkResult
         },
         step2: async () => {
@@ -97,7 +99,8 @@ export async function POST(req: NextRequest) {
           comps: comps!,
           report_english: reportTexts!.english,
           report_native: reportTexts!.native,
-          matched_academy: academy,
+          matched_academy: academyMatches[0]?.name || academy,
+          matched_academies: academyMatches,
           email_draft: emailDraft!,
           pipeline_steps: steps,
         }

@@ -26,6 +26,16 @@ export interface PlayerComp {
   note: string
 }
 
+export interface AcademyMatch {
+  name: string
+  country: string
+  tier: 'elite' | 'top' | 'development'
+  fitScore: number
+  reason: string
+  contactEmail: string
+  websiteUrl: string
+}
+
 export interface ScoutingReport {
   id: string
   generated_at: string
@@ -35,6 +45,7 @@ export interface ScoutingReport {
   report_english: string
   report_native: string
   matched_academy: string
+  matched_academies: AcademyMatch[]
   email_draft: string
   pipeline_steps: PipelineStep[]
 }

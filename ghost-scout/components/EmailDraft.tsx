@@ -1,24 +1,17 @@
 'use client'
 
 import { useState } from 'react'
+import { AcademyMatch } from '@/lib/types'
 
 interface EmailDraftProps {
   email: string
   academy: string
+  academyMatches?: AcademyMatch[]
 }
 
-const academyEmails: Record<string, string> = {
-  'FC Barcelona La Masia': 'youth@fcbarcelona.cat',
-  'RB Leipzig Academy': 'academy@rbleipzig.com',
-  'Ajax Academy': 'youth@ajax.nl',
-  'Atalanta Academy': 'academy@atalanta.it',
-  'Manchester City Academy': 'academy@mancity.com',
-  'Borussia Dortmund Academy': 'youth@bvb.de',
-}
-
-export default function EmailDraft({ email, academy }: EmailDraftProps) {
+export default function EmailDraft({ email, academy, academyMatches }: EmailDraftProps) {
   const [copied, setCopied] = useState(false)
-  const toAddress = academyEmails[academy] || 'academy@club.com'
+  const toAddress = academyMatches?.[0]?.contactEmail || 'academy@club.com'
 
   const subjectMatch = email.match(/Subject:\s*(.+)/i)
   const subject = subjectMatch ? subjectMatch[1].trim() : 'Youth Talent Scouting Report'

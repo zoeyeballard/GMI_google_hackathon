@@ -35,6 +35,11 @@ const mockReport: ScoutingReport = {
   report_english: '# Scouting Report\n\nExecutive Summary: Exceptional talent...',
   report_native: '# Rapport de Scout\n\nRésumé: Talent exceptionnel...',
   matched_academy: 'FC Barcelona La Masia',
+  matched_academies: [
+    { name: 'FC Barcelona La Masia', country: 'Spain', tier: 'elite', fitScore: 95, reason: 'Strong west africa pipeline; values left-footed players. Known for: technical, positional play', contactEmail: 'youth@fcbarcelona.cat', websiteUrl: 'https://www.fcbarcelona.com/en/card/644461/la-masia' },
+    { name: 'Olympique Lyonnais Academy', country: 'France', tier: 'elite', fitScore: 85, reason: 'Strong west africa pipeline; accepts wingers. Known for: French-speaking Africa pipeline, technical', contactEmail: 'academy@ol.fr', websiteUrl: 'https://www.ol.fr/en/youth-academy' },
+    { name: 'Ajax Academy', country: 'Netherlands', tier: 'elite', fitScore: 80, reason: 'Strong west africa pipeline; accepts wingers. Known for: tactical intelligence, total football', contactEmail: 'youth@ajax.nl', websiteUrl: 'https://www.ajax.nl/en/youth-academy/' },
+  ],
   email_draft: 'Dear FC Barcelona Academy Director,\n\nI am writing to bring to your attention...',
   pipeline_steps: mockSteps,
 }
