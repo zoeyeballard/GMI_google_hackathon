@@ -1,5 +1,10 @@
 import { NextRequest } from 'next/server'
 
+beforeAll(() => {
+  process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'test-key'
+  process.env.GMI_API_KEY = process.env.GMI_API_KEY || 'test-key'
+})
+
 describe('Phase 3: API routes', () => {
   describe('GET /api/health', () => {
     it('returns 200 with correct shape', async () => {

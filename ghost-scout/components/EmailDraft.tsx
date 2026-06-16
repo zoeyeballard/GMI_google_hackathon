@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { AcademyMatch } from '@/lib/types'
 
 interface EmailDraftProps {
@@ -9,7 +9,7 @@ interface EmailDraftProps {
   academyMatches?: AcademyMatch[]
 }
 
-export default function EmailDraft({ email, academy, academyMatches }: EmailDraftProps) {
+export default memo(function EmailDraft({ email, academy, academyMatches }: EmailDraftProps) {
   const [copied, setCopied] = useState(false)
   const toAddress = academyMatches?.[0]?.contactEmail || 'academy@club.com'
 
@@ -53,4 +53,4 @@ export default function EmailDraft({ email, academy, academyMatches }: EmailDraf
       </div>
     </div>
   )
-}
+})

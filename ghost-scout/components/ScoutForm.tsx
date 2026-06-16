@@ -1,42 +1,72 @@
 'use client'
 
-import { useState } from 'react'
-import { PlayerInput } from '@/lib/types'
+import { useState, useMemo } from 'react'
+import { PlayerInput, VideoAnalysisInput } from '@/lib/types'
+import { validateYouTubeUrl } from '@/lib/videoValidation'
+import VideoInput from '@/components/VideoInput'
 
-const DEMO_SCENARIOS: PlayerInput[] = [
+interface DemoScenario {
+  player: PlayerInput
+  videoUrl?: string
+  label?: string
+}
+
+const DEMO_SCENARIOS: DemoScenario[] = [
   {
-    name: 'Amadou Diallo',
-    age: 14,
-    country: 'Senegal',
-    position: 'winger',
-    height_cm: 168,
-    weight_kg: 58,
-    dominant_foot: 'left',
-    sprint_100m_seconds: 11.4,
-    skills_description: 'Exceptional pace and close control. Beats defenders with ease on the left flank. Raw but instinctive — makes intelligent diagonal runs and has a natural left foot with whip on crosses. Thrives in 1v1 situations.',
-    language: 'French',
+    player: {
+      name: 'Amadou Diallo',
+      age: 14,
+      country: 'Senegal',
+      position: 'winger',
+      height_cm: 168,
+      weight_kg: 58,
+      dominant_foot: 'left',
+      sprint_100m_seconds: 11.4,
+      skills_description: 'Exceptional pace and close control. Beats defenders with ease on the left flank. Raw but instinctive — makes intelligent diagonal runs and has a natural left foot with whip on crosses. Thrives in 1v1 situations.',
+      language: 'French',
+    },
   },
   {
-    name: 'Chidera Okafor',
-    age: 15,
-    country: 'Nigeria',
-    position: 'striker',
-    height_cm: 175,
-    weight_kg: 68,
-    dominant_foot: 'right',
-    skills_description: 'Powerful and physical striker with elite finishing instinct. Strong in the air for his age, holds up play well against older defenders. Clinical inside the box — rarely wastes chances. Natural leader on the pitch.',
-    language: 'Igbo',
+    player: {
+      name: 'Chidera Okafor',
+      age: 15,
+      country: 'Nigeria',
+      position: 'striker',
+      height_cm: 175,
+      weight_kg: 68,
+      dominant_foot: 'right',
+      skills_description: 'Powerful and physical striker with elite finishing instinct. Strong in the air for his age, holds up play well against older defenders. Clinical inside the box — rarely wastes chances. Natural leader on the pitch.',
+      language: 'Igbo',
+    },
   },
   {
-    name: 'María Santos',
-    age: 13,
-    country: 'Bolivia',
-    position: 'midfielder',
-    height_cm: 155,
-    weight_kg: 46,
-    dominant_foot: 'both',
-    skills_description: 'Creative midfielder with extraordinary vision for her age. Both-footed with an ability to switch play across 40 yards. Reads the game two steps ahead, constantly finding pockets of space. Excellent stamina and work rate.',
-    language: 'Spanish',
+    player: {
+      name: 'Mar\u00EDa Santos',
+      age: 13,
+      country: 'Bolivia',
+      position: 'midfielder',
+      height_cm: 155,
+      weight_kg: 46,
+      dominant_foot: 'both',
+      skills_description: 'Creative midfielder with extraordinary vision for her age. Both-footed with an ability to switch play across 40 yards. Reads the game two steps ahead, constantly finding pockets of space. Excellent stamina and work rate.',
+      language: 'Spanish',
+    },
+  },
+  {
+    label: '\uD83C\uDFA5 Amadou (Video Demo)',
+    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    player: {
+      name: 'Amadou Diallo',
+      age: 14,
+      country: 'Senegal',
+      position: 'winger',
+      height_cm: 168,
+      weight_kg: 58,
+      dominant_foot: 'left',
+      sprint_100m_seconds: 11.4,
+      skills_description: 'Exceptional pace and close control. Beats defenders with ease on the left flank. Raw but instinctive — makes intelligent diagonal runs and has a natural left foot with whip on crosses. Thrives in 1v1 situations.',
+      language: 'French',
+    },
   },
 ]
 
@@ -45,13 +75,21 @@ const COUNTRY_SUGGESTIONS = [
 ]
 
 interface ScoutFormProps {
-  onSubmit: (player: PlayerInput) => void
+  onSubmit: (player: PlayerInput, video?: VideoAnalysisInput) => void
   isLoading?: boolean
 }
 
 export default function ScoutForm({ onSubmit, isLoading = false }: ScoutFormProps) {
   const [form, setForm] = useState<Partial<PlayerInput>>({})
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [youtubeUrl, setYoutubeUrl] = useState('')
+  const [videoDescription, setVideoDescription] = useState('')
+  const [showVideoSection, setShowVideoSection] = useState(false)
+
+  const youtubeStatus = useMemo(() => {
+    if (!youtubeUrl.trim()) return 'empty'
+    return validateYouTubeUrl(youtubeUrl) ? 'valid' : 'invalid'
+  }, [youtubeUrl])
 
   const filteredCountries = COUNTRY_SUGGESTIONS.filter(c =>
     c.toLowerCase().startsWith((form.country || '').toLowerCase())
@@ -61,13 +99,32 @@ export default function ScoutForm({ onSubmit, isLoading = false }: ScoutFormProp
     setForm(prev => ({ ...prev, [key]: value }))
   }
 
-  const loadDemo = (demo: PlayerInput) => {
-    setForm({ ...demo })
+  const loadDemo = (demo: DemoScenario) => {
+    setForm({ ...demo.player })
+    if (demo.videoUrl) {
+      setYoutubeUrl(demo.videoUrl)
+      setShowVideoSection(true)
+    } else {
+      setYoutubeUrl('')
+      setShowVideoSection(false)
+    }
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit(form as PlayerInput)
+    const videoInput: VideoAnalysisInput | undefined =
+      showVideoSection && youtubeUrl.trim() && youtubeStatus === 'valid'
+        ? {
+            youtubeUrl,
+            videoDescription: videoDescription.trim() || undefined,
+            playerName: (form.name ?? ''),
+            age: (form.age ?? 0),
+            country: (form.country ?? ''),
+            position: (form.position ?? ''),
+            language: form.language || undefined,
+          }
+        : undefined
+    onSubmit(form as PlayerInput, videoInput)
   }
 
   return (
@@ -78,14 +135,22 @@ export default function ScoutForm({ onSubmit, isLoading = false }: ScoutFormProp
             <span className="text-white">Ghost</span>{' '}
             <span className="text-scout-accent">Scout</span>
           </h1>
-          <p className="text-gray-400 text-lg mb-4">Finding the world&apos;s hidden talent</p>
-          <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
-            <span>Powered by</span>
-            <span className="text-blue-400 font-semibold">GMI Cloud</span>
-            <span className="text-gray-600">·</span>
-            <span className="text-yellow-400 font-semibold">Google Gemini</span>
-            <span className="text-gray-600">·</span>
-            <span className="text-purple-400 font-semibold">RocketRide</span>
+          <p className="text-gray-400 text-lg mb-5">Finding the world&apos;s hidden talent</p>
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <span className="text-xs text-gray-600 uppercase tracking-wider">Powered by</span>
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30">
+              GMI Cloud
+            </span>
+            <span className="px-3 py-1 rounded-full text-xs font-bold border border-yellow-500/30 text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-400"
+              style={{ WebkitBackgroundClip: 'text' }}
+            >
+              <span className="px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500/15 to-red-500/15 border border-yellow-500/30 text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-400">
+                Google Gemini
+              </span>
+            </span>
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-purple-500/15 text-purple-400 border border-purple-500/30">
+              RocketRide
+            </span>
           </div>
         </header>
 
@@ -93,21 +158,29 @@ export default function ScoutForm({ onSubmit, isLoading = false }: ScoutFormProp
           <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
             Quick Demo Scenarios
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {DEMO_SCENARIOS.map((demo) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {DEMO_SCENARIOS.map((demo, i) => (
               <button
-                key={demo.name}
+                key={i}
                 type="button"
                 onClick={() => loadDemo(demo)}
-                className="text-left p-4 rounded-lg border border-gray-700 bg-gray-900/50 hover:border-scout-accent/50 hover:bg-gray-800/50 transition-all duration-200"
+                className={`text-left p-4 rounded-lg border transition-all duration-200 ${
+                  demo.videoUrl
+                    ? 'border-red-500/30 bg-red-500/5 hover:border-red-500/60 hover:bg-red-500/10'
+                    : 'border-gray-700 bg-gray-900/50 hover:border-scout-accent/50 hover:bg-gray-800/50'
+                }`}
               >
-                <div className="font-semibold text-white">{demo.name}</div>
+                <div className="font-semibold text-white">
+                  {demo.label ?? demo.player.name}
+                </div>
                 <div className="text-sm text-gray-400 mt-1">
-                  {demo.age}yo · {demo.country} · {demo.position}
-                  {demo.dominant_foot !== 'right' && ` · ${demo.dominant_foot} foot`}
+                  {demo.player.age}yo · {demo.player.country} · {demo.player.position}
+                  {demo.player.dominant_foot !== 'right' && ` · ${demo.player.dominant_foot} foot`}
                 </div>
                 <div className="text-xs text-gray-500 mt-2 line-clamp-2">
-                  {demo.skills_description}
+                  {demo.videoUrl
+                    ? 'Form + Video combined analysis (placeholder video)'
+                    : demo.player.skills_description}
                 </div>
               </button>
             ))}
@@ -310,14 +383,74 @@ export default function ScoutForm({ onSubmit, isLoading = false }: ScoutFormProp
             />
           </div>
 
+          {/* ── Video Analysis (Optional) ── */}
+          <div className="border border-gray-700 rounded-xl overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShowVideoSection(!showVideoSection)}
+              aria-label={showVideoSection ? 'Hide video analysis section' : 'Show video analysis section'}
+              aria-expanded={showVideoSection}
+              className="w-full flex items-center justify-between px-5 py-3.5 bg-gray-800/50 hover:bg-gray-800 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-red-500" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+                <span className="text-sm font-medium text-gray-300">
+                  Add Video Analysis <span className="text-gray-500">(optional)</span>
+                </span>
+              </div>
+              <svg
+                className={`w-4 h-4 text-gray-500 transition-transform ${showVideoSection ? 'rotate-180' : ''}`}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {showVideoSection && (
+              <div className="px-5 py-4 border-t border-gray-700">
+                <VideoInput
+                  youtubeUrl={youtubeUrl}
+                  onYoutubeUrlChange={setYoutubeUrl}
+                  videoDescription={videoDescription}
+                  onVideoDescriptionChange={setVideoDescription}
+                />
+              </div>
+            )}
+          </div>
+
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || (showVideoSection && youtubeUrl.trim() !== '' && youtubeStatus === 'invalid')}
+            aria-label="Generate scouting report"
             className="w-full py-3.5 px-6 bg-scout-accent text-scout-dark font-bold rounded-lg text-lg hover:bg-green-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Analyzing...' : 'Generate Scouting Report'}
+            {isLoading
+              ? 'Analyzing...'
+              : showVideoSection && youtubeStatus === 'valid'
+                ? 'Generate Combined Report'
+                : 'Generate Scouting Report'}
           </button>
         </form>
+
+        {/* How It Works */}
+        <div className="mt-12 mb-4">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-5 text-center">How It Works</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {[
+              { step: '1', label: 'Benchmark', provider: 'GMI Cloud', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+              { step: '2', label: 'Player Comps', provider: 'GMI Cloud', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+              { step: '3', label: 'Scout Report', provider: 'Gemini', color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20' },
+              { step: '4', label: 'Academy Email', provider: 'Gemini', color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20' },
+            ].map((s) => (
+              <div key={s.step} className={`rounded-lg ${s.bg} border ${s.border} p-2.5 text-center`}>
+                <div className="text-xs font-bold text-white truncate">{s.label}</div>
+                <div className={`text-[10px] ${s.color} mt-0.5`}>{s.provider}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )

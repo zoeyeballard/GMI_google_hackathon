@@ -64,9 +64,9 @@ describe('Phase 4: UI components', () => {
 
     it('displays all 3 provider names in the header', () => {
       render(<ScoutForm onSubmit={jest.fn()} />)
-      expect(screen.getByText(/GMI Cloud/i)).toBeInTheDocument()
-      expect(screen.getByText(/Gemini/i)).toBeInTheDocument()
-      expect(screen.getByText(/RocketRide/i)).toBeInTheDocument()
+      expect(screen.getAllByText(/GMI Cloud/i).length).toBeGreaterThan(0)
+      expect(screen.getAllByText(/Gemini/i).length).toBeGreaterThan(0)
+      expect(screen.getAllByText(/RocketRide/i).length).toBeGreaterThan(0)
     })
 
     it('calls onSubmit with form data when submitted', () => {

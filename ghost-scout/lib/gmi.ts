@@ -14,15 +14,25 @@ interface PositionBenchmark {
 }
 
 const TIMEOUT_MS = 30000
-const RETRY_MAX = 1
+const RETRY_MAX = 2
 const RETRY_BACKOFF_MS = 2000
+
+function stripMarkdownFences(text: string): string {
+  return text.replace(/```(?:json)?\s*\n?/gi, '').replace(/```\s*$/gm, '').trim()
+}
 
 const VALID_MODELS = [
   'deepseek-ai/DeepSeek-R1',
   'meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8',
 ]
 
+// GMI Cloud model for benchmark analysis and player comps (default: DeepSeek-R1)
 const GMI_MODEL = process.env.GMI_MODEL || 'deepseek-ai/DeepSeek-R1'
+
+// GMI Cloud API key for inference on NVIDIA H100 GPUs
+if (!process.env.GMI_API_KEY) {
+  console.error('[GMI] GMI_API_KEY is not set — benchmark and comp steps will fall back to Gemini. Get one at https://cloud.gmi.ai')
+}
 
 if (process.env.GMI_MODEL && !VALID_MODELS.includes(process.env.GMI_MODEL)) {
   console.warn(
@@ -35,11 +45,13 @@ const GMI_SYSTEM_PROMPT = `You are an elite FIFA-certified youth football scout 
 
 const gmiClient = new OpenAI({
   apiKey: process.env.GMI_API_KEY || '',
+  // GMI Cloud API base URL (OpenAI-compatible endpoint)
   baseURL: process.env.GMI_BASE_URL || 'https://api.gmi-serving.com/v1',
   timeout: TIMEOUT_MS,
   maxRetries: 0,
 })
 
+// Gemini fallback used when GMI Cloud is unavailable
 const fallbackAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
 const BenchmarkResultSchema = z.object({
@@ -123,7 +135,9 @@ async function callGMI(systemPrompt: string, userPrompt: string, stepName: strin
     console.error(`[GMI] All retries exhausted (${reason}). Falling back to Gemini for step: ${stepName}`)
     const model = fallbackAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
     const result = await model.generateContent(`${systemPrompt}\n\n${userPrompt}`)
-    return result.response.text()
+    const text = result.response.text()
+    console.error(`[Gemini fallback] ${stepName} response length: ${text.length}, starts: ${text.substring(0, 100)}`)
+    return text
   }
 }
 
@@ -172,8 +186,12 @@ Return ONLY valid JSON with this exact structure:
 }`
 
   const content = await callGMI(GMI_SYSTEM_PROMPT, userPrompt, 'analyzeWithBenchmarks')
-  const jsonMatch = content.match(/\{[\s\S]*\}/)
-  const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : content)
+  const cleaned = stripMarkdownFences(content)
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
+  if (!jsonMatch) {
+    throw new Error(`Benchmark analysis returned non-JSON response: ${content.substring(0, 200)}`)
+  }
+  const parsed = JSON.parse(jsonMatch[0])
   return BenchmarkResultSchema.parse(parsed)
 }
 
@@ -201,7 +219,11 @@ Return ONLY a valid JSON array of objects:
 }]`
 
   const content = await callGMI(GMI_SYSTEM_PROMPT, userPrompt, 'generatePlayerComps')
-  const jsonMatch = content.match(/\[[\s\S]*\]/)
-  const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : content)
+  const cleaned = stripMarkdownFences(content)
+  const jsonMatch = cleaned.match(/\[[\s\S]*\]/)
+  if (!jsonMatch) {
+    throw new Error(`Player comps returned non-JSON response: ${content.substring(0, 200)}`)
+  }
+  const parsed = JSON.parse(jsonMatch[0])
   return z.array(PlayerCompSchema).parse(parsed)
 }

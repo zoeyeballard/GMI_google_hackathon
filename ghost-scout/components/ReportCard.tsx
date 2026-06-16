@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { ScoutingReport } from '@/lib/types'
 
 interface ReportCardProps {
@@ -36,7 +36,7 @@ function renderMarkdown(md: string): string {
     .replace(/\n\n/g, '<br/><br/>')
 }
 
-export default function ReportCard({ report }: ReportCardProps) {
+export default memo(function ReportCard({ report }: ReportCardProps) {
   const [showNative, setShowNative] = useState(false)
   const [copied, setCopied] = useState(false)
   const { player, benchmark, comps, matched_academy } = report
@@ -109,7 +109,7 @@ export default function ReportCard({ report }: ReportCardProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-800">
           <h3 className="text-sm font-semibold text-scout-accent mb-2">Standout Attributes</h3>
           <div className="flex flex-wrap gap-2">
@@ -199,15 +199,17 @@ export default function ReportCard({ report }: ReportCardProps) {
         />
       </div>
 
-      <div className="flex items-center gap-3 pt-4 no-print">
+      <div className="flex items-center gap-3 pt-4 no-print flex-wrap">
         <button
           onClick={handleDownloadPDF}
+          aria-label="Download scouting report as PDF"
           className="px-5 py-2.5 text-sm font-medium rounded-lg bg-scout-accent text-scout-dark hover:bg-scout-accent/90 transition-colors"
         >
           Download Report (PDF)
         </button>
         <button
           onClick={handleCopyReport}
+          aria-label={copied ? 'Report copied to clipboard' : 'Copy report text to clipboard'}
           className="px-5 py-2.5 text-sm font-medium rounded-lg border border-scout-accent text-scout-accent hover:bg-scout-accent/10 transition-colors"
         >
           {copied ? 'Copied!' : 'Copy Report Text'}
@@ -221,4 +223,4 @@ export default function ReportCard({ report }: ReportCardProps) {
       )}
     </div>
   )
-}
+})

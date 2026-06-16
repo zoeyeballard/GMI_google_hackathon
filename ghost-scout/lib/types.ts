@@ -58,3 +58,46 @@ export interface PipelineStep {
   duration_ms?: number
   output_preview?: string
 }
+
+// ── Combined input ──
+
+export interface CombinedScoutInput {
+  player?: PlayerInput
+  video?: VideoAnalysisInput
+}
+
+// ── Video-based talent analysis ──
+
+export interface VideoAnalysisInput {
+  youtubeUrl?: string
+  videoDescription?: string
+  playerName: string
+  age: number
+  country: string
+  position: string
+  language?: string
+}
+
+export interface VideoFrame {
+  timestamp: number
+  description: string
+}
+
+export interface TalentIndicator {
+  category: 'technical' | 'physical' | 'tactical' | 'psychological'
+  indicator: string
+  observed: boolean
+  confidence: number
+  evidence: string
+}
+
+export interface VideoAnalysisResult {
+  id: string
+  playerName: string
+  overallVideoRating: number
+  talentIndicators: TalentIndicator[]
+  keyMoments: VideoFrame[]
+  summaryText: string
+  recommendationLevel: 'high' | 'medium' | 'low' | 'insufficient_footage'
+  combinedWithFormData?: ScoutingReport
+}
